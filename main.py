@@ -236,7 +236,7 @@ def create_admin_user():
         existing_user = session.exec(statement).first()
         
         if not existing_user:
-            hashed_pw = pwd_context.hash("Haaris@2005")
+            hashed_pw = pwd_context.hash("admin123")
             admin_user = User(username="Haaris_Nazir", hashed_password=hashed_pw)
             session.add(admin_user)
             session.commit()
