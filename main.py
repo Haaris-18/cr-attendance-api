@@ -9,7 +9,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Session, create_engine, select
-
+from sqlmodel import Session, select
+from passlib.context import CryptContext
 # --- Security Configuration ---
 SECRET_KEY = "YOUR_SUPER_SECRET_KEY_CHANGE_THIS"  # Keep this secret!
 ALGORITHM = "HS256"
@@ -226,3 +227,17 @@ def mark_attendance(
 @app.get("/", response_class=FileResponse)
 def read_index():
     return "index.html"
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+@app.on_event("startup")
+def create_admin_user():
+    with Session(engine) as session:
+        statement = select(User).where(User.username == "Haaris_Nazir")
+        existing_user = session.exec(statement).first()
+        
+        if not existing_user:
+            hashed_pw = pwd_context.hash("Haaris@2005")
+            admin_user = User(username="Haaris_Nazir", hashed_password=hashed_pw)
+            session.add(admin_user)
+            session.commit()
+            print("Default admin user created!")
