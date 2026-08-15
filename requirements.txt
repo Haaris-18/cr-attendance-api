@@ -4,7 +4,6 @@ sqlmodel
 python-jose[cryptography]
 passlib
 bcrypt
+python-multipart
 sqlalchemy
 pydantic
-pandas
-matplotlib
