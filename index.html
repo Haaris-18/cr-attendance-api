@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CR Attendance System</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+        .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin: auto; }
+        input, select, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .section { display: none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>CR Attendance System Login</h2>
+    <div id="login-section">
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="dashboard-section" class="section">
+        <h3 id="welcome-msg">Welcome</h3>
+        
+        <h4>Add Student</h4>
+        <input type="text" id="roll" placeholder="Roll Number (e.g. 2026-CS-01)">
+        <input type="text" id="sname" placeholder="Student Name">
+        <input type="number" id="sem" placeholder="Semester Number">
+        <button onclick="addStudent()">Add Student</button>
+
+        <h4 style="margin-top:20px;">Mark Attendance</h4>
+        <input type="number" id="att-student-id" placeholder="Student ID">
+        <input type="number" id="att-subject-id" placeholder="Subject ID">
+        <input type="date" id="att-date">
+        <select id="att-status">
+            <option value="PRESENT">PRESENT</option>
+            <option value="ABSENT">ABSENT</option>
+            <option value="LEAVE">LEAVE</option>
+        </select>
+        <button onclick="markAttendance()">Submit Attendance</button>
+    </div>
+</div>
+
+<script>
+    let token = "";
+
+    async function login() {
+        let formData = new URLSearchParams();
+        formData.append("username", document.getElementById("username").value);
+        formData.append("password", document.getElementById("password").value);
+
+        let response = await fetch("/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData
+        });
+
+        if (response.ok) {
+            let data = await response.json();
+            token = data.access_token;
+            document.getElementById("login-section").style.display = "none";
+            document.getElementById("dashboard-section").style.display = "block";
+            alert("Login Successful!");
+        } else {
+            alert("Invalid Credentials!");
+        }
+    }
+
+    async function addStudent() {
+        let data = {
+            roll_number: document.getElementById("roll").value,
+            name: document.getElementById("sname").value,
+            semester: parseInt(document.getElementById("sem").value)
+        };
+
+        let response = await fetch("/cr/students", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) alert("Student added successfully!");
+        else alert("Error adding student");
+    }
+
+    async function markAttendance() {
+        let data = {
+            student_id: parseInt(document.getElementById("att-student-id").value),
+            subject_id: parseInt(document.getElementById("att-subject-id").value),
+            date: document.getElementById("att-date").value,
+            status: document.getElementById("att-status").value
+        };
+
+        let response = await fetch("/cr/attendance/mark", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) alert("Attendance marked!");
+        else alert("Error marking attendance");
+    }
+</script>
+
+</body>
+</html>
