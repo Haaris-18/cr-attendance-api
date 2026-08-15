@@ -65,10 +65,7 @@ def create_db_and_tables():
         
         if not existing_user:
             hashed_pw = pwd_context.hash("admin123"[:72])
-            admin_user = User(username="Haaris_Nazir", hashed_password=hashed_pw)
-            session.add(admin_user)
-            session.commit()
-            print("Default admin user created!")
+            admin_user = User(username="Haaris_Nazir", hashed_password=hashed_pw, role="admin")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
