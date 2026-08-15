@@ -4,6 +4,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from fastapi import FileResponse
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
@@ -221,3 +222,7 @@ def mark_attendance(
     session.commit()
     session.refresh(db_attendance)
     return {"message": "Attendance marked successfully"}
+
+@app.get("/", response_class=FileResponse)
+def read_index():
+    return "index.html"
