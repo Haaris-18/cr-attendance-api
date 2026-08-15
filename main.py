@@ -64,7 +64,7 @@ def create_db_and_tables():
         existing_user = session.exec(statement).first()
         
         if not existing_user:
-            hashed_pw = pwd_context.hash("admin123")
+            hashed_pw = pwd_context.hash("admin123"[:72])
             admin_user = User(username="Haaris_Nazir", hashed_password=hashed_pw)
             session.add(admin_user)
             session.commit()
