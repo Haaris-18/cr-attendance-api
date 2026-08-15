@@ -58,14 +58,23 @@ class Attendance(SQLModel, table=True):
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
     
-    # Create default admin user
     with Session(engine) as session:
         statement = select(User).where(User.username == "Haaris_Nazir")
         existing_user = session.exec(statement).first()
         
+        hashed_pw = pwd_context.hash("admin123"[:72])
         if not existing_user:
-            hashed_pw = pwd_context.hash("admin123"[:72])
             admin_user = User(username="Haaris_Nazir", hashed_password=hashed_pw, role="ADMIN")
+            session.add(admin_user)
+            session.commit()
+            print("Default admin user created!")
+        else:
+            # Force update password and role in case it was mismatched
+            existing_user.hashed_password = hashed_pw
+            existing_user.role = "ADMIN"
+            session.add(existing_user)
+            session.commit()
+            print("Admin user updated!")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
