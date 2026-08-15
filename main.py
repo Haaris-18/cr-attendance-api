@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Session, create_engine, select
 from sqlmodel import Session, select
 from passlib.context import CryptContext
+from contextlib import asynccontextmanager
 # --- Security Configuration ---
 SECRET_KEY = "YOUR_SUPER_SECRET_KEY_CHANGE_THIS"  # Keep this secret!
 ALGORITHM = "HS256"
@@ -56,14 +57,27 @@ class Attendance(SQLModel, table=True):
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
+    
+    # Create default admin user
+    with Session(engine) as session:
+        statement = select(User).where(User.username == "Haaris_Nazir")
+        existing_user = session.exec(statement).first()
+        
+        if not existing_user:
+            hashed_pw = pwd_context.hash("admin123")
+            admin_user = User(username="Haaris_Nazir", hashed_password=hashed_pw)
+            session.add(admin_user)
+            session.commit()
+            print("Default admin user created!")
 
-
-app = FastAPI(title="Secure CR Attendance System")
-
-
-@app.on_event("startup")
-def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # This runs on startup
     create_db_and_tables()
+    yield
+    # This runs on shutdown (optional, leave empty if not needed)
+
+app = FastAPI(title="Secure CR Attendance System", lifespan=lifespan)
 
 
 # --- Pydantic Schemas for Requests ---
@@ -228,16 +242,3 @@ def mark_attendance(
 def read_index():
     return "index.html"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-@app.on_event("startup")
-def create_admin_user():
-    with Session(engine) as session:
-        statement = select(User).where(User.username == "Haaris_Nazir")
-        existing_user = session.exec(statement).first()
-        
-        if not existing_user:
-            hashed_pw = pwd_context.hash("admin123")
-            admin_user = User(username="Haaris_Nazir", hashed_password=hashed_pw)
-            session.add(admin_user)
-            session.commit()
-            print("Default admin user created!")
